@@ -1,6 +1,326 @@
-# Vue3 MSA Frontend 공통 뼈대
+# 설마설마 E-Commerce Frontend
 
-MSA(Microservices Architecture) 환경에서 구동되는 Vue3 기반 프론트엔드 공통 뼈대입니다.
+Vue3 기반 이커머스 프론트엔드 애플리케이션입니다. MSA(Microservices Architecture) 환경에서 구동되며, 사용자와 관리자 기능을 모두 제공합니다.
+
+## 🚀 주요 기능
+
+### 사용자 기능
+- **회원 인증**: JWT 기반 로그인/회원가입 (자동 토큰 갱신)
+- **상품 조회**: 상품 목록 조회 및 검색
+- **주문 관리**: 상품 직접 주문 및 주문 내역 조회
+- **쿠폰 시스템**: 쿠폰 발급 및 사용 (선착순 쿠폰 지원)
+
+### 관리자 기능
+- **상품 관리**: 상품 등록, 조회, 삭제 (이미지 업로드 지원)
+- **주문 관리**: 전체 주문 조회 및 상태 변경
+- **쿠폰 관리**: 쿠폰 템플릿 등록 (퍼센트/고정금액 할인)
+
+## 🏗️ 아키텍처 개요
+
+### 서비스 구성 (MSA)
+
+#### 개발 환경
+- **General Service** (포트 8080): User + Product + Order 통합
+- **Coupon Service** (포트 8081): 쿠폰 발급, 관리
+
+#### 운영 환경
+- **EC2-1** (10.0.1.10:8081): Coupon Service
+- **EC2-2** (10.0.1.20:8080): General Service
+- **ALB**: 경로 기반 라우팅
+  - `/api/v1/coupons/*` → Coupon Service
+  - 나머지 → General Service
+
+### 인증 방식
+- **AccessToken**: JWT Bearer Token (Header 주입)
+- **RefreshToken**: HttpOnly Cookie
+- **자동 갱신**: 401 에러 시 자동 토큰 갱신 및 재시도
+
+## 📁 프로젝트 구조
+
+```
+src/
+├── api/                    # API 모듈 (MSA 서비스별)
+│   ├── client.js          # Axios 클라이언트 설정
+│   ├── interceptors.js    # 요청/응답 인터셉터
+│   ├── auth.js           # 인증 API
+│   ├── product.js        # 상품 API
+│   ├── coupon.js         # 쿠폰 API
+│   └── order.js          # 주문 API
+├── components/           # 컴포넌트
+│   ├── common/           # 공통 컴포넌트
+│   │   ├── BaseButton.vue
+│   │   ├── BaseInput.vue
+│   │   ├── CommonModal.vue
+│   │   └── modals/
+│   ├── layout/           # 레이아웃 컴포넌트
+│   └── main/             # 메인 페이지 컴포넌트
+│       ├── MainNavigation.vue
+│       ├── HeroBanner.vue
+│       ├── ProductGrid.vue
+│       └── ProductCard.vue
+├── views/                # 페이지 컴포넌트
+│   ├── Home.vue          # 메인 페이지 (상품 목록)
+│   ├── Login.vue         # 로그인
+│   ├── Register.vue      # 회원가입
+│   ├── CouponPage.vue    # 쿠폰 발급
+│   ├── MyCouponPage.vue  # 내 쿠폰 조회
+│   ├── OrderPage.vue     # 주문하기
+│   ├── MyOrderPage.vue   # 주문 내역
+│   ├── admin/            # 관리자 페이지
+│   │   ├── ProductRegisterPage.vue   # 상품 등록
+│   │   ├── ProductListPage.vue       # 상품 목록
+│   │   ├── AdminOrderListPage.vue    # 주문 관리
+│   │   └── CouponRegisterPage.vue    # 쿠폰 등록
+│   └── ErrorPage.vue     # 에러 페이지
+├── composables/          # 재사용 가능한 로직
+│   ├── useAuth.js        # 인증 관련
+│   ├── useModal.js       # 모달 관리
+│   ├── useApi.js         # API 호출 헬퍼
+│   ├── useList.js        # 목록/페이지네이션
+│   ├── useNavigation.js  # 네비게이션 헬퍼
+│   └── useValidation.js  # 유효성 검사
+├── store/                # Pinia 스토어
+│   ├── auth.js           # 인증 상태 (role 기반 권한)
+│   └── modal.js          # 모달 상태
+├── utils/                # 유틸리티
+│   ├── navigation.js
+│   ├── helpers.js
+│   └── validation.js
+├── constants/            # 상수
+│   └── apiCodes.js
+├── assets/               # 정적 자원
+│   ├── styles/
+│   │   ├── components/
+│   │   └── pages/
+│   │       ├── main.css
+│   │       ├── coupon.css
+│   │       ├── order.css
+│   │       ├── order-list.css
+│   │       └── admin.css
+│   └── images/
+├── router/               # 라우터 설정
+└── main.js              # 앱 진입점
+```
+
+## 🎯 시작하기
+
+### 설치
+```bash
+npm install
+```
+
+### 개발 서버 실행
+```bash
+npm run dev
+```
+개발 서버는 `http://localhost:5173`에서 실행됩니다.
+
+### 빌드
+```bash
+# 프로덕션 빌드 (.env.production 사용)
+npm run build
+
+# 빌드 미리보기
+npm run preview
+```
+
+## 🔧 환경 변수
+
+### .env.development (개발 환경)
+```bash
+VITE_API_BASE_URL=http://localhost:8080
+VITE_GENERAL_SERVICE_URL=http://localhost:8080
+VITE_COUPON_SERVICE_URL=http://localhost:8081
+VITE_USER_SERVICE_URL=http://localhost:8080
+VITE_PRODUCT_SERVICE_URL=http://localhost:8080
+VITE_ORDER_SERVICE_URL=http://localhost:8080
+VITE_ENV=development
+```
+
+### .env.production (운영 환경)
+```bash
+VITE_API_BASE_URL=https://your-domain.com
+VITE_GENERAL_SERVICE_URL=https://your-domain.com
+VITE_COUPON_SERVICE_URL=https://your-domain.com
+VITE_USER_SERVICE_URL=https://your-domain.com
+VITE_PRODUCT_SERVICE_URL=https://your-domain.com
+VITE_ORDER_SERVICE_URL=https://your-domain.com
+VITE_ENV=production
+```
+
+## 📱 주요 페이지
+
+### 사용자 페이지
+- `/` - 메인 페이지 (상품 목록)
+- `/login` - 로그인
+- `/register` - 회원가입
+- `/coupons` - 쿠폰 발급
+- `/my-coupons` - 내 쿠폰 조회
+- `/order` - 주문하기
+- `/my-orders` - 주문 내역
+
+### 관리자 페이지 (ADMIN 권한 필요)
+- `/admin/products/register` - 상품 등록
+- `/admin/products` - 상품 목록 관리
+- `/admin/orders` - 주문 관리
+- `/admin/coupons/register` - 쿠폰 등록
+
+## 🎨 주요 기능 상세
+
+### 1. 권한 기반 네비게이션
+```javascript
+// auth store에서 role 확인
+const authStore = useAuthStore()
+authStore.isAdmin  // role === 'ADMIN'
+
+// 관리자 로그인 시 자동으로 관리자 메뉴 표시
+// 일반 사용자 로그인 시 사용자 메뉴 표시
+```
+
+### 2. 상품 관리 (관리자)
+- 상품명, 가격, 이미지 등록
+- 이미지 미리보기 기능
+- 상품 목록 조회 및 삭제
+- 페이지네이션 지원
+
+### 3. 주문 시스템
+- 상품 카드에서 수량 선택 후 바로 주문
+- 주문자 정보 입력 (이름, 연락처, 주소)
+- 쿠폰 적용 (퍼센트/고정금액 할인)
+- 결제 방법 선택 (신용카드/가상계좌/계좌이체)
+- 실시간 금액 계산 (상품 금액 - 할인 금액)
+
+### 4. 쿠폰 시스템
+- 쿠폰 발급 (선착순 지원)
+- 내 쿠폰 조회
+- 주문 시 쿠폰 적용
+- 관리자 쿠폰 템플릿 등록
+
+### 5. 주문 관리 (관리자)
+- 전체 주문 내역 조회
+- 주문 상태 변경
+  - 결제완료 → 배송준비중 → 배송중 → 배송완료
+  - 취소 처리
+
+## 🔐 인증 시스템
+
+### 자동 토큰 갱신
+```javascript
+// interceptors.js에서 자동 처리
+// 401 에러 + C0002 코드 시:
+// 1. RefreshToken으로 AccessToken 갱신
+// 2. 원래 요청 재시도
+// 3. 갱신 실패 시 로그아웃 및 로그인 페이지 이동
+```
+
+### 권한 체크
+```javascript
+// 각 관리자 페이지에서 자동 체크
+if (!authStore.isAdmin) {
+  alert('관리자만 접근할 수 있습니다.')
+  router.push('/')
+}
+```
+
+## 📋 API 응답 형식
+
+### 성공 응답
+```json
+{
+  "code": "C0000",
+  "message": "성공",
+  "data": { ... },
+  "timestamp": "2026-01-14T10:30:00"
+}
+```
+
+### 에러 응답
+```json
+{
+  "code": "C0002",
+  "message": "인증 실패",
+  "data": null,
+  "timestamp": "2026-01-14T10:30:00"
+}
+```
+
+## 🚀 배포
+
+### EC2 + Nginx 배포
+자세한 배포 가이드는 [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)를 참조하세요.
+
+**간단 요약:**
+1. `npm run build` - 프로덕션 빌드
+2. `dist/` 폴더를 EC2로 업로드
+3. Nginx 설정 (Vue Router History Mode 지원)
+4. Nginx 재시작
+
+### 포트 설정
+자세한 포트 구조는 [PORT_GUIDE.md](./PORT_GUIDE.md)를 참조하세요.
+
+## 🎨 디자인 시스템
+
+### 색상 팔레트
+- **Primary**: `#5d4e37` (브라운)
+- **Secondary**: `#a67c52` (라이트 브라운)
+- **Accent**: `#b32d2d` (레드)
+- **Background**: `#f8f6f0` (베이지)
+
+### 주요 스타일
+- 통일된 배너 디자인 (모든 페이지)
+- 카드 기반 레이아웃
+- 그라데이션 버튼
+- 반응형 디자인 (모바일 지원)
+
+## 🛠️ 기술 스택
+
+- **Vue 3** - Composition API
+- **Vite** - 빌드 도구
+- **Vue Router** - 라우팅
+- **Pinia** - 상태 관리
+- **Axios** - HTTP 클라이언트
+- **CSS3** - 스타일링 (순수 CSS)
+
+## 📝 개발 가이드
+
+### 새로운 페이지 추가
+1. `src/views/`에 컴포넌트 생성
+2. `src/router/index.js`에 라우트 추가
+3. 필요시 CSS 파일 생성 (`src/assets/styles/pages/`)
+
+### 새로운 API 추가
+1. `src/api/`에 API 함수 정의
+2. 적절한 서비스 클라이언트 사용 (generalServiceClient, couponServiceClient)
+
+### 관리자 기능 추가
+1. `src/views/admin/`에 페이지 생성
+2. `authStore.isAdmin` 체크 추가
+3. MainNavigation에 메뉴 추가
+
+## 🐛 트러블슈팅
+
+### 이미지가 표시되지 않음
+- API 응답의 `images` 배열 확인
+- `imageUrl`이 상대 경로인 경우 서버 URL 추가 필요
+- `getImageUrl()` 함수 사용
+
+### 관리자 메뉴가 표시되지 않음
+- 로그인 API 응답에 `role: "ADMIN"` 포함 확인
+- localStorage에 user 정보 저장 확인
+- `authStore.isAdmin` computed 값 확인
+
+### 환경 변수가 적용되지 않음
+- `.env.production` 파일 확인
+- 다시 빌드 (`npm run build`)
+- 환경 변수는 빌드 시점에 코드에 주입됨
+
+## 📄 라이선스
+
+이 프로젝트는 교육 목적으로 제작되었습니다.
+
+## 👥 기여
+
+프로젝트 개선을 위한 제안이나 버그 리포트는 언제든 환영합니다!
 
 ## 🚀 주요 기능
 

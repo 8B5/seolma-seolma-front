@@ -38,10 +38,16 @@ export const useAuthStore = defineStore('auth', () => {
             const response = await authAPI.login(credentials)
 
             if (isSuccess(response.data.code)) {
-                const { accessToken: token, user: userData } = response.data.data
+                const data = response.data.data
+                const { accessToken: token, userId, userName, role } = data
 
                 setAccessToken(token)
-                setUser(userData)
+                // user 객체 구성
+                setUser({
+                    userId,
+                    userName,
+                    role
+                })
 
                 return { success: true, data: response.data.data }
             } else {
@@ -57,17 +63,10 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
-    const logout = async () => {
-        try {
-            // 서버에 로그아웃 요청 (RefreshToken 무효화)
-            await authAPI.logout()
-        } catch (error) {
-            console.error('로그아웃 API 호출 실패:', error)
-        } finally {
-            // 로컬 상태 초기화
-            setAccessToken(null)
-            setUser(null)
-        }
+    const logout = () => {
+        // 로컬 상태 초기화
+        setAccessToken(null)
+        setUser(null)
     }
 
     const fetchProfile = async () => {

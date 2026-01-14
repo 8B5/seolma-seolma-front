@@ -18,7 +18,6 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { getBannerPath } from '@/utils/helpers'
 
 const router = useRouter()
 const searchKeyword = ref('')
@@ -34,7 +33,4 @@ const handleSearch = () => {
 const handleBannerClick = () => {
   router.push('/coupons')
 }
-
-// 배너 배경 이미지 (이미지 파일이 있을 때 사용)
-// const bannerImage = getBannerPath('hero-banner.jpg')
 </script>

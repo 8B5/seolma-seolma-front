@@ -21,6 +21,42 @@ const routes = [
         name: 'Coupons',
         component: () => import('@/views/CouponPage.vue')
     },
+    {
+        path: '/my-coupons',
+        name: 'MyCoupons',
+        component: () => import('@/views/MyCouponPage.vue')
+    },
+    {
+        path: '/order',
+        name: 'Order',
+        component: () => import('@/views/OrderPage.vue')
+    },
+    {
+        path: '/my-orders',
+        name: 'MyOrders',
+        component: () => import('@/views/MyOrderPage.vue')
+    },
+    // 관리자 페이지
+    {
+        path: '/admin/products/register',
+        name: 'AdminProductRegister',
+        component: () => import('@/views/admin/ProductRegisterPage.vue')
+    },
+    {
+        path: '/admin/products',
+        name: 'AdminProductList',
+        component: () => import('@/views/admin/ProductListPage.vue')
+    },
+    {
+        path: '/admin/orders',
+        name: 'AdminOrderList',
+        component: () => import('@/views/admin/AdminOrderListPage.vue')
+    },
+    {
+        path: '/admin/coupons/register',
+        name: 'AdminCouponRegister',
+        component: () => import('@/views/admin/CouponRegisterPage.vue')
+    },
     // 공통 에러 페이지
     {
         path: '/error',

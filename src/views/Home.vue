@@ -33,10 +33,12 @@ import { useModal } from '@/composables/useModal'
 import { useCartStore } from '@/store/cart'
 import { productAPI } from '@/api/product'
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import '@/assets/styles/pages/main.css'
 
 const { success } = useModal()
 const cartStore = useCartStore()
+const router = useRouter()
 
 // 더미 상품 데이터
 const dummyProducts = ref([])
@@ -73,12 +75,16 @@ onMounted(async () => {
 
 // 검색 처리
 const handleSearch = (keyword) => {
-  applyFilters({ search: keyword })
+  applyFilters({ keyword: keyword })
 }
 
-// 장바구니 추가 처리
+// 장바구니 추가 및 주문 페이지 이동
 const handleAddToCart = (cartItem) => {
-  cartStore.addToCart(cartItem)
-  success(`${cartItem.product.name} ${cartItem.quantity}개가 장바구니에 추가되었습니다!`)
+  // 상품 정보를 sessionStorage에 저장
+  sessionStorage.setItem('orderProduct', JSON.stringify(cartItem.product))
+  sessionStorage.setItem('orderQuantity', cartItem.quantity.toString())
+  
+  // 주문 페이지로 이동
+  router.push('/order')
 }
 </script>

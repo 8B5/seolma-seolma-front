@@ -1,12 +1,20 @@
 <template>
   <header>
     <nav class="top-nav">
-      <!-- 로그인 상태일 때 -->
-      <template v-if="authStore.isAuthenticated">
+      <!-- 관리자일 때 -->
+      <template v-if="authStore.isAuthenticated && authStore.isAdmin">
+        <router-link to="/admin/products/register">상품 등록</router-link>
+        <router-link to="/admin/products">상품 목록</router-link>
+        <router-link to="/admin/orders">주문 확인</router-link>
+        <router-link to="/admin/coupons/register">쿠폰 등록</router-link>
+        <button @click="handleLogout" class="logout-btn">로그아웃</button>
+      </template>
+      
+      <!-- 일반 사용자 로그인 상태일 때 -->
+      <template v-else-if="authStore.isAuthenticated">
         <router-link to="/coupons">쿠폰 발급</router-link>
         <router-link to="/my-coupons">쿠폰 조회</router-link>
-        <router-link to="/payment">결제 페이지</router-link>
-        <router-link to="/orders">주문 확인</router-link>
+        <router-link to="/my-orders">주문 확인</router-link>
         <button @click="handleLogout" class="logout-btn">로그아웃</button>
       </template>
       

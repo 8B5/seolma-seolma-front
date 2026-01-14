@@ -46,7 +46,7 @@ export const productAPI = {
     // 상품 이미지 업로드 (관리자)
     uploadProductImage(productId, imageFile) {
         const formData = new FormData()
-        formData.append('image', imageFile)
+        formData.append('file', imageFile)
 
         return productServiceClient.post(`/api/v1/admin/products/${productId}/images`, formData, {
             headers: {

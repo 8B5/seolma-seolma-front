@@ -16,6 +16,12 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.coupon-banner:hover {
+    opacity: 0.95;
 }
 
 /* 쿠폰 섹션 */
@@ -63,6 +69,8 @@
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .coupon-card::before {
@@ -84,6 +92,10 @@
 .coupon-header {
     text-align: center;
     margin-bottom: 20px;
+    min-height: 140px; /* 헤더 영역 고정 높이 */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
 .coupon-title {
@@ -108,6 +120,10 @@
 /* 선착순 쿠폰 표시 */
 .coupon-limited {
     margin-top: 8px;
+    min-height: 28px; /* limited-text가 없어도 동일한 높이 유지 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .limited-text {
@@ -140,6 +156,7 @@
 /* 쿠폰 푸터 */
 .coupon-footer {
     text-align: center;
+    margin-top: auto; /* 버튼을 하단에 고정 */
 }
 
 .coupon-button {
@@ -167,15 +184,27 @@
     transform: translateY(-1px);
 }
 
+.coupon-button--upcoming {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    color: white;
+    cursor: not-allowed;
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.2);
+}
+
+.coupon-button--upcoming:hover {
+    background: linear-gradient(135deg, #6b7280, #4b5563);
+    transform: none;
+}
+
 .coupon-button--disabled {
-    background: #9ca3af;
-    color: #6b7280;
+    background: #d1d5db;
+    color: #9ca3af;
     cursor: not-allowed;
     box-shadow: none;
 }
 
 .coupon-button--disabled:hover {
-    background: #9ca3af;
+    background: #d1d5db;
     transform: none;
 }
 

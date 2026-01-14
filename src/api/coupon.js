@@ -3,9 +3,9 @@ import { couponServiceClient } from './client'
 export const couponAPI = {
     // === 사용자 쿠폰 API ===
 
-    // 발급 가능한 쿠폰 목록 조회
+    // 모든 쿠폰 목록 조회
     getAvailableTemplates() {
-        return couponServiceClient.get('/api/v1/coupons/templates/available')
+        return couponServiceClient.get('/api/v1/coupons/templates')
     },
 
     // 쿠폰 발급
