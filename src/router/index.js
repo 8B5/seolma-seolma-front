@@ -57,6 +57,11 @@ const routes = [
         name: 'AdminCouponRegister',
         component: () => import('@/views/admin/CouponRegisterPage.vue')
     },
+    {
+        path: '/admin/coupons',
+        name: 'AdminCouponTemplateList',
+        component: () => import('@/views/admin/CouponTemplateListPage.vue')
+    },
     // 공통 에러 페이지
     {
         path: '/error',

@@ -7,6 +7,7 @@
         <router-link to="/admin/products">상품 목록</router-link>
         <router-link to="/admin/orders">주문 확인</router-link>
         <router-link to="/admin/coupons/register">쿠폰 등록</router-link>
+        <router-link to="/admin/coupons">쿠폰 템플릿 목록</router-link>
         <button @click="handleLogout" class="logout-btn">로그아웃</button>
       </template>
       

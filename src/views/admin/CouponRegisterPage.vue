@@ -67,6 +67,7 @@
               v-model="couponForm.startedAt"
               type="datetime-local" 
               class="field-input"
+              :min="minStartDate"
               required
             />
           </div>
@@ -78,6 +79,7 @@
               v-model="couponForm.finishedAt"
               type="datetime-local" 
               class="field-input"
+              :min="minEndDate"
               required
             />
           </div>
@@ -117,7 +119,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import MainNavigation from '@/components/main/MainNavigation.vue'
 import { couponAPI } from '@/api/coupon'
@@ -141,6 +143,25 @@ const couponForm = ref({
   totalQuantity: null
 })
 
+// 현재 날짜/시간을 datetime-local 형식으로 변환
+const getCurrentDateTime = () => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+// 시작일시 최소값 (현재 날짜/시간)
+const minStartDate = computed(() => getCurrentDateTime())
+
+// 종료일시 최소값 (시작일시가 있으면 시작일시, 없으면 현재 날짜/시간)
+const minEndDate = computed(() => {
+  return couponForm.value.startedAt || getCurrentDateTime()
+})
+
 const goToHome = () => {
   router.push('/')
 }
@@ -156,11 +177,18 @@ const handleSubmit = async () => {
     return
   }
 
-  // 날짜 형식 변환 (ISO 8601)
+  // datetime-local 값을 로컬 시간 기준 ISO 문자열로 변환
+  const formatToLocalISO = (dateTimeLocal) => {
+    if (!dateTimeLocal) return null
+    // datetime-local 형식: "2026-01-15T04:23"
+    // 초를 추가하여 ISO 형식으로 변환: "2026-01-15T04:23:00"
+    return `${dateTimeLocal}:00`
+  }
+
   const templateData = {
     ...couponForm.value,
-    startedAt: new Date(couponForm.value.startedAt).toISOString(),
-    finishedAt: new Date(couponForm.value.finishedAt).toISOString(),
+    startedAt: formatToLocalISO(couponForm.value.startedAt),
+    finishedAt: formatToLocalISO(couponForm.value.finishedAt),
     totalQuantity: couponForm.value.isLimited ? couponForm.value.totalQuantity : null
   }
 

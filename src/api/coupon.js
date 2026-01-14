@@ -54,6 +54,11 @@ export const couponAPI = {
         return couponServiceClient.get('/api/v1/admin/coupons/templates', { params })
     },
 
+    // 쿠폰 템플릿 상세 조회 (관리자)
+    getAdminTemplateDetail(templateId) {
+        return couponServiceClient.get(`/api/v1/admin/coupons/templates/${templateId}`)
+    },
+
     // 쿠폰 템플릿 수정 (관리자)
     updateTemplate(templateId, templateData) {
         return couponServiceClient.put(`/api/v1/admin/coupons/templates/${templateId}`, templateData)

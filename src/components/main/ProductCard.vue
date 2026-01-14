@@ -13,7 +13,7 @@
       <h3>{{ product.name }}</h3>
       <p class="price">{{ formatNumber(product.price) }}원</p>
       
-      <div class="controls">
+      <div v-if="!isAdmin" class="controls">
         <div class="quantity">
           <button @click="decreaseQuantity" :disabled="quantity <= 1">-</button>
           <span>{{ quantity }}</span>
@@ -28,6 +28,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { formatNumber } from '@/utils/helpers'
+import { useAuthStore } from '@/store/auth'
 
 const props = defineProps({
   product: {
@@ -37,6 +38,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['add-to-cart'])
+
+const authStore = useAuthStore()
+const isAdmin = computed(() => authStore.isAdmin)
 
 const quantity = ref(1)
 
