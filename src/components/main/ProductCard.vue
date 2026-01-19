@@ -28,6 +28,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { formatNumber } from '@/utils/helpers'
+import { getProductImageUrl } from '@/utils/imageUrl'
 import { useAuthStore } from '@/store/auth'
 
 const props = defineProps({
@@ -48,31 +49,31 @@ const quantity = ref(1)
 const productImageUrl = computed(() => {
   // images 배열이 있고 첫 번째 이미지가 있는 경우
   if (props.product.images && props.product.images.length > 0) {
-    const imageUrl = props.product.images[0].imageUrl
-    return getImageUrl(imageUrl)
+    const originalUrl = props.product.images[0].imageUrl
+    const transformedUrl = getProductImageUrl(originalUrl)
+    
+    // 디버깅용 로그
+    console.log('Original image URL:', originalUrl)
+    console.log('Transformed image URL:', transformedUrl)
+    console.log('USE_PROXY:', import.meta.env.VITE_USE_PROXY)
+    
+    return transformedUrl
   }
   
   // 기존 imageUrl 필드가 있는 경우 (하위 호환성)
   if (props.product.imageUrl) {
-    return getImageUrl(props.product.imageUrl)
+    const originalUrl = props.product.imageUrl
+    const transformedUrl = getProductImageUrl(originalUrl)
+    
+    // 디버깅용 로그
+    console.log('Original image URL:', originalUrl)
+    console.log('Transformed image URL:', transformedUrl)
+    
+    return transformedUrl
   }
   
   return null
 })
-
-// 이미지 URL 처리 (상대 경로를 절대 경로로 변환)
-const getImageUrl = (imageUrl) => {
-  if (!imageUrl) return null
-  
-  // 이미 전체 URL인 경우
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl
-  }
-  
-  // 상대 경로인 경우 서버 URL 추가
-  const baseUrl = import.meta.env.VITE_GENERAL_SERVICE_URL || 'http://localhost:8080'
-  return `${baseUrl}${imageUrl}`
-}
 
 const increaseQuantity = () => {
   quantity.value++
