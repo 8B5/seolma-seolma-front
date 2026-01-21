@@ -8,6 +8,11 @@
     <section class="admin-section">
       <h2 class="section-title">쿠폰 등록</h2>
       
+      <div v-if="serviceError" class="error-message">
+        쿠폰 서비스에 접속할 수 없습니다. 잠시 후 다시 시도해주세요.
+        <button class="retry-button" @click="serviceError = false">확인</button>
+      </div>
+      
       <div class="admin-container">
         <form @submit.prevent="handleSubmit" class="coupon-form">
           <div class="form-field">
@@ -143,6 +148,8 @@ const couponForm = ref({
   totalQuantity: null
 })
 
+const serviceError = ref(false) // 서비스 에러 상태 추가
+
 // 현재 날짜/시간을 datetime-local 형식으로 변환
 const getCurrentDateTime = () => {
   const now = new Date()
@@ -177,6 +184,8 @@ const handleSubmit = async () => {
     return
   }
 
+  serviceError.value = false // 에러 상태 초기화
+
   // datetime-local 값을 로컬 시간 기준 ISO 문자열로 변환
   const formatToLocalISO = (dateTimeLocal) => {
     if (!dateTimeLocal) return null
@@ -195,8 +204,10 @@ const handleSubmit = async () => {
   const result = await execute(
     () => couponAPI.createTemplate(templateData),
     {
+      showErrorModal: false,
       onSuccess: () => {
         success('쿠폰이 등록되었습니다!')
+        serviceError.value = false
         // 폼 초기화
         couponForm.value = {
           title: '',
@@ -209,10 +220,18 @@ const handleSubmit = async () => {
         }
       },
       onError: (message) => {
+        // nginx fallback JSON 응답 체크는 여기서 할 수 없으므로 일반 에러 처리
         showError(message || '쿠폰 등록에 실패했습니다.')
       }
     }
   )
+
+  // 결과에서 nginx fallback JSON 응답 체크
+  if (result.success && result.data && result.data.code === 'C502') {
+    console.log('쿠폰 서비스 접속 불가:', result.data.message)
+    serviceError.value = true
+    showError('쿠폰 서비스에 접속할 수 없습니다. 잠시 후 다시 시도해주세요.')
+  }
 }
 
 // 관리자 권한 확인

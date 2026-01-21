@@ -14,6 +14,11 @@
         쿠폰을 불러오는 중...
       </div>
       
+      <div v-else-if="serviceError" class="error-message">
+        쿠폰 서비스에 접속할 수 없습니다. 잠시 후 다시 시도해주세요.
+        <button class="retry-button" @click="loadMyCoupons">다시 시도</button>
+      </div>
+      
       <div v-else-if="coupons.length === 0" class="empty-message">
         발급받은 쿠폰이 없습니다.
       </div>
@@ -90,6 +95,7 @@ const router = useRouter()
 const { execute, loading } = useApi()
 
 const coupons = ref([])
+const serviceError = ref(false) // 서비스 에러 상태 추가
 
 // 홈으로 이동
 const goToHome = () => {
@@ -98,6 +104,8 @@ const goToHome = () => {
 
 // 내 쿠폰 목록 로드
 const loadMyCoupons = async () => {
+  serviceError.value = false // 에러 상태 초기화
+  
   // 1단계: 사용 가능한 내 쿠폰 조회
   const myCouponsResult = await execute(
     () => couponAPI.getMyAvailableCoupons(),
@@ -109,7 +117,21 @@ const loadMyCoupons = async () => {
     }
   )
 
-  if (!myCouponsResult.success || !myCouponsResult.data || myCouponsResult.data.length === 0) {
+  if (!myCouponsResult.success) {
+    console.log('내 쿠폰 목록 조회 실패')
+    coupons.value = []
+    return
+  }
+
+  // nginx fallback JSON 응답 체크
+  if (myCouponsResult.data && myCouponsResult.data.code === 'C502') {
+    console.log('쿠폰 서비스 접속 불가:', myCouponsResult.data.message)
+    serviceError.value = true
+    coupons.value = []
+    return
+  }
+
+  if (!myCouponsResult.data || myCouponsResult.data.length === 0) {
     console.log('사용 가능한 쿠폰이 없습니다.')
     coupons.value = []
     return
@@ -129,7 +151,21 @@ const loadMyCoupons = async () => {
     }
   )
 
-  if (!templatesResult.success || !templatesResult.data) {
+  if (!templatesResult.success) {
+    console.log('쿠폰 템플릿 정보를 불러올 수 없습니다.')
+    coupons.value = []
+    return
+  }
+
+  // nginx fallback JSON 응답 체크 (템플릿 조회에서도)
+  if (templatesResult.data && templatesResult.data.code === 'C502') {
+    console.log('쿠폰 서비스 접속 불가:', templatesResult.data.message)
+    serviceError.value = true
+    coupons.value = []
+    return
+  }
+
+  if (!templatesResult.data) {
     console.log('쿠폰 템플릿 정보를 불러올 수 없습니다.')
     coupons.value = []
     return

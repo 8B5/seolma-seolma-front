@@ -208,9 +208,10 @@
     transform: none;
 }
 
-/* 로딩 및 빈 상태 */
+/* 로딩, 빈 상태, 에러 상태 */
 .loading-message,
-.empty-message {
+.empty-message,
+.error-message {
     text-align: center;
     padding: 80px 20px;
     color: #8b7355;
@@ -227,6 +228,32 @@
     background: linear-gradient(135deg, #f5f1eb, #e8dcc6);
     border-radius: 12px;
     border: 2px dashed #d4c4a8;
+}
+
+.error-message {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    border-radius: 12px;
+    border: 2px solid #fca5a5;
+    color: #dc2626;
+}
+
+.retry-button {
+    margin-top: 16px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.retry-button:hover {
+    background: linear-gradient(135deg, #b91c1c, #991b1b);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
 /* 반응형 디자인 */

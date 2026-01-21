@@ -12,6 +12,11 @@
         쿠폰 템플릿을 불러오는 중...
       </div>
       
+      <div v-else-if="serviceError" class="error-message">
+        쿠폰 서비스에 접속할 수 없습니다. 잠시 후 다시 시도해주세요.
+        <button class="retry-button" @click="loadTemplates">다시 시도</button>
+      </div>
+      
       <div v-else-if="templates.length === 0" class="empty-message">
         등록된 쿠폰 템플릿이 없습니다.
       </div>
@@ -237,6 +242,7 @@ const templates = ref([])
 const currentPage = ref(0)
 const totalPages = ref(0)
 const pageSize = 20
+const serviceError = ref(false) // 서비스 에러 상태 추가
 
 const showEditModal = ref(false)
 const updateLoading = ref(false)
@@ -312,6 +318,8 @@ const minEndDate = computed(() => {
 
 // 쿠폰 템플릿 목록 로드
 const loadTemplates = async (page = 0) => {
+  serviceError.value = false // 에러 상태 초기화
+  
   const result = await execute(
     () => couponAPI.getAdminTemplates({ page, size: pageSize }),
     {
@@ -323,17 +331,27 @@ const loadTemplates = async (page = 0) => {
     }
   )
 
-  if (result.success && result.data) {
-    // 응답이 배열로 직접 오는 경우
-    if (Array.isArray(result.data)) {
-      templates.value = result.data
-      currentPage.value = 0
-      totalPages.value = 1
-    } else {
-      // 페이지네이션 응답인 경우
-      templates.value = result.data.content || []
-      currentPage.value = result.data.number || 0
-      totalPages.value = result.data.totalPages || 0
+  if (result.success) {
+    // nginx fallback JSON 응답 체크
+    if (result.data && result.data.code === 'C502') {
+      console.log('쿠폰 서비스 접속 불가:', result.data.message)
+      serviceError.value = true
+      templates.value = []
+      return
+    }
+
+    if (result.data) {
+      // 응답이 배열로 직접 오는 경우
+      if (Array.isArray(result.data)) {
+        templates.value = result.data
+        currentPage.value = 0
+        totalPages.value = 1
+      } else {
+        // 페이지네이션 응답인 경우
+        templates.value = result.data.content || []
+        currentPage.value = result.data.number || 0
+        totalPages.value = result.data.totalPages || 0
+      }
     }
   }
 }
@@ -372,24 +390,33 @@ const handleEdit = async (template) => {
     }
   )
   
-  if (result.success && result.data) {
-    const detail = result.data
-    console.log('=== 쿠폰 템플릿 상세 조회 ===')
-    console.log('detail.startedAt:', detail.startedAt)
-    console.log('detail.finishedAt:', detail.finishedAt)
-    console.log('toDateTimeLocal(startedAt):', toDateTimeLocal(detail.startedAt))
-    console.log('toDateTimeLocal(finishedAt):', toDateTimeLocal(detail.finishedAt))
-    
-    editForm.value = {
-      title: detail.title,
-      discountType: detail.discountType,
-      discountValue: detail.discountValue,
-      startedAt: toDateTimeLocal(detail.startedAt),
-      finishedAt: toDateTimeLocal(detail.finishedAt),
-      isLimited: detail.isLimited,
-      totalQuantity: detail.totalQuantity
+  if (result.success) {
+    // nginx fallback JSON 응답 체크
+    if (result.data && result.data.code === 'C502') {
+      console.log('쿠폰 서비스 접속 불가:', result.data.message)
+      showError('쿠폰 서비스에 접속할 수 없습니다. 잠시 후 다시 시도해주세요.')
+      return
     }
-    showEditModal.value = true
+
+    if (result.data) {
+      const detail = result.data
+      console.log('=== 쿠폰 템플릿 상세 조회 ===')
+      console.log('detail.startedAt:', detail.startedAt)
+      console.log('detail.finishedAt:', detail.finishedAt)
+      console.log('toDateTimeLocal(startedAt):', toDateTimeLocal(detail.startedAt))
+      console.log('toDateTimeLocal(finishedAt):', toDateTimeLocal(detail.finishedAt))
+      
+      editForm.value = {
+        title: detail.title,
+        discountType: detail.discountType,
+        discountValue: detail.discountValue,
+        startedAt: toDateTimeLocal(detail.startedAt),
+        finishedAt: toDateTimeLocal(detail.finishedAt),
+        isLimited: detail.isLimited,
+        totalQuantity: detail.totalQuantity
+      }
+      showEditModal.value = true
+    }
   }
 }
 

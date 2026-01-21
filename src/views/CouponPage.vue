@@ -14,6 +14,11 @@
         쿠폰을 불러오는 중...
       </div>
       
+      <div v-else-if="serviceError" class="error-message">
+        쿠폰 서비스에 접속할 수 없습니다. 잠시 후 다시 시도해주세요.
+        <button class="retry-button" @click="loadCoupons">다시 시도</button>
+      </div>
+      
       <div v-else-if="coupons.length === 0" class="empty-message">
         발급 가능한 쿠폰이 없습니다.
       </div>
@@ -78,6 +83,7 @@ const { execute, loading } = useApi()
 const authStore = useAuthStore()
 
 const coupons = ref([])
+const serviceError = ref(false) // 서비스 에러 상태 추가
 
 // 홈으로 이동
 const goToHome = () => {
@@ -86,68 +92,38 @@ const goToHome = () => {
 
 // 쿠폰 목록 로드
 const loadCoupons = async () => {
+  serviceError.value = false // 에러 상태 초기화
+  
   const result = await execute(
     () => couponAPI.getAvailableTemplates(),
     {
       showErrorModal: false,
       onError: (error) => {
         console.error('쿠폰 목록 로드 실패:', error)
-        // API 실패 시 테스트용 더미 데이터 사용
-        coupons.value = getTestCoupons()
+        coupons.value = []
       }
     }
   )
 
   if (result.success) {
+    // nginx fallback JSON 응답 체크
+    if (result.data && result.data.code === 'C502') {
+      console.log('쿠폰 서비스 접속 불가:', result.data.message)
+      serviceError.value = true
+      coupons.value = []
+      return
+    }
+    
     // useApi에서 이미 response.data.data를 추출해서 반환함
     coupons.value = result.data || []
     console.log('로드된 쿠폰 목록:', coupons.value)
-    
-    // API에서 데이터가 없으면 테스트 데이터 사용
-    if (coupons.value.length === 0) {
-      console.log('API에서 쿠폰 데이터가 없어서 테스트 데이터 사용')
-      coupons.value = getTestCoupons()
-    }
   } else {
-    // API 실패 시 테스트용 더미 데이터 사용
-    coupons.value = getTestCoupons()
+    // API 실패 시 빈 배열
+    coupons.value = []
   }
 }
 
-// 테스트용 쿠폰 데이터 (API 명세서 구조와 동일)
-const getTestCoupons = () => [
-  {
-    templateId: 1,
-    title: "신규 회원 할인 쿠폰",
-    discountType: "PERCENT",
-    discountValue: 10,
-    startedAt: "2025-01-01T00:00:00",
-    finishedAt: "2025-12-31T23:59:59",
-    isLimited: false
-  },
-  {
-    templateId: 2,
-    title: "선착순 100명 할인쿠폰",
-    discountType: "FIXED",
-    discountValue: 5000,
-    startedAt: "2025-01-09T00:00:00",
-    finishedAt: "2025-01-31T23:59:59",
-    isLimited: true,
-    totalQuantity: 100
-  },
-  {
-    templateId: 3,
-    title: "특별 할인 쿠폰",
-    discountType: "PERCENT",
-    discountValue: 15,
-    startedAt: "2025-01-10T00:00:00",
-    finishedAt: "2025-02-28T23:59:59",
-    isLimited: true,
-    totalQuantity: 50
-  }
-]
-
-// 날짜 포맷팅
+// 쿠폰 발급 가능 여부 확인
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('ko-KR', {
