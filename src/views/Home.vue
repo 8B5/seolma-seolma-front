@@ -12,8 +12,8 @@
     
     <!-- 페이지네이션 -->
     <div v-if="totalPages > 1" class="pagination">
-      <button 
-        v-for="page in totalPages" 
+      <button
+        v-for="page in totalPages"
         :key="page"
         :class="{ active: currentPage === page - 1 }"
         @click="goToPage(page - 1)"
@@ -21,6 +21,9 @@
         {{ page }}
       </button>
     </div>
+
+    <!-- AI 선물 추천 (우측 하단 플로팅) -->
+    <AiRecommendModal />
   </div>
 </template>
 
@@ -28,6 +31,7 @@
 import MainNavigation from '@/components/main/MainNavigation.vue'
 import HeroBanner from '@/components/main/HeroBanner.vue'
 import ProductGrid from '@/components/main/ProductGrid.vue'
+import AiRecommendModal from '@/components/main/AiRecommendModal.vue'
 import { useList } from '@/composables/useList'
 import { useModal } from '@/composables/useModal'
 import { useCartStore } from '@/store/cart'
